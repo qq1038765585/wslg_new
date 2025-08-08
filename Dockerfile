@@ -356,12 +356,12 @@ RUN if [ -z "$SYSTEMDISTRO_DEBUG_BUILD" ] ; then \
         echo "== Install development aid packages ==" && \
         tdnf install -y                          \
              gdb                                 \
-             mariner-repos-debug                 \
+             azurelinux-repos-debug              \
              nano                                \
              vim                              && \
         tdnf install -y                          \
              wayland-debuginfo                   \
-             xorg-x11-server-debuginfo;          \
+             xorg-x11-server-Xwayland-debuginfo; \
     fi
 
 # Clear the tdnf cache to make the image smaller
