@@ -1,124 +1,38 @@
 # Create a builder image with the compilers, etc. needed
-FROM mcr.microsoft.com/azurelinux/base/core:3.0.20250729 AS build-env
+FROM archlinux:base AS build-env
 
 # Install all the required packages for building. This list is probably
 # longer than necessary.
-RUN echo "== Install Git/CA certificates ==" && \
-    tdnf install -y \
+RUN echo "== Install Dependencies ==" && \
+    pacman -S --noconfirm \
         git \
-        ca-certificates
-
-RUN echo "== Install Core dependencies ==" && \
-    tdnf install -y \
-        alsa-lib \
-        alsa-lib-devel  \
-        autoconf  \
-        automake  \
-        binutils  \
-        bison  \
-        build-essential  \
+        meson \
+        gcc \
+        clang \
+        pkg-config \
+        cmake \
+        libva \
+        libvdpau \
+        python-mako \
+        python-distutils-extra \
+        valgrind \
+        byacc \
+        flex \
+        xorg-xrandr \
+        libsndfile \
+        libice \
+        libsm \
+        libxtst \
+        libxkbcommon \
+        libinput \
+        libwebp \
+        libxcursor \
+        wayland-protocols \
+        libltdl \
+        pixman \
         cairo \
-        cairo-devel \
-        clang  \
-        clang-devel  \
-        cmake  \
-        dbus  \
-        dbus-devel  \
-        dbus-glib  \
-        dbus-glib-devel  \
-        diffutils  \
-        elfutils-devel  \
-        file-libs  \
-        flex  \
-        fontconfig-devel  \
-        gawk  \
-        gcc  \
-        gettext  \
-        glibc-devel  \
-        glib-schemas \
-        gobject-introspection  \
-        gobject-introspection-devel  \
-        harfbuzz  \
-        harfbuzz-devel  \
-        kernel-headers  \
-        intltool \
-        libatomic_ops  \
-        libcap-devel  \
-        libffi  \
-        libffi-devel  \
-        libgudev  \
-        libgudev-devel  \
-        libjpeg-turbo  \
-        libjpeg-turbo-devel  \
-        libltdl  \
-        libltdl-devel  \
-        libpng-devel  \
-        librsvg2-devel \
-        libtiff  \
-        libtiff-devel  \
-        libusb  \
-        libusb-devel  \
-        libwebp  \
-        libwebp-devel  \
-        libxml2 \
-        libxml2-devel  \
-        make  \
-        meson  \
-        newt  \
-        nss  \
-        nss-libs  \
-        openldap  \
-        openssl-devel  \
-        pam-devel  \
-        pango  \
-        pango-devel  \
-        patch  \
-        perl-XML-Parser \
-        polkit-devel  \
-        python3-devel \
-        python3-mako  \
-        python3-markupsafe \
-        sed \
-        sqlite-devel \
-        systemd-devel  \
-        tar \
-        unzip  \
-        vala  \
-        vala-devel  \
-        vala-tools  \
-        zlib-devel
+        pango
 
-RUN echo "== Install UI dependencies ==" && \
-    tdnf    install -y \
-            libdrm-devel \
-            libepoxy-devel \
-            libevdev \
-            libevdev-devel \
-            libinput \
-            libinput-devel \
-            libpciaccess-devel \
-            libSM-devel \
-            libsndfile \
-            libsndfile-devel \
-            libXcursor \
-            libXcursor-devel \
-            libXdamage-devel \
-            libXfont2-devel \
-            libXi \
-            libXi-devel \
-            libxkbcommon-devel \
-            libxkbfile-devel \
-            libXrandr-devel \
-            libxshmfence-devel \
-            libXtst \
-            libXtst-devel \
-            libXxf86vm-devel \
-            wayland-devel \
-            wayland-protocols-devel \
-            xkbcomp \
-            xkeyboard-config \
-            xorg-x11-server-Xwayland-devel \
-            xorg-x11-util-macros
 
 # Create an image with builds of FreeRDP and Weston
 FROM build-env AS dev
@@ -209,6 +123,7 @@ RUN cmake -G Ninja \
         -DCMAKE_INSTALL_LIBDIR=${PREFIX}/lib \
         -DCMAKE_BUILD_TYPE=${BUILDTYPE_FREERDP} \
         -DWITH_DEBUG_ALL=${WITH_DEBUG_FREERDP} \
+        -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
         -DWITH_ICU=ON \
         -DWITH_SERVER=ON \
         -DWITH_CHANNEL_GFXREDIR=ON \
@@ -217,9 +132,6 @@ RUN cmake -G Ninja \
         -DWITH_CLIENT_COMMON=OFF \
         -DWITH_CLIENT_CHANNELS=OFF \
         -DWITH_CLIENT_INTERFACE=OFF \
-        -DWITH_LIBSYSTEMD=OFF \
-        -DWITH_WAYLAND=OFF \
-        -DWITH_X11=OFF \
         -DWITH_PROXY=OFF \
         -DWITH_SHADOW=OFF \
         -DWITH_SAMPLE=OFF && \
@@ -267,7 +179,7 @@ RUN /usr/bin/meson --prefix=${PREFIX} build \
         -Dcolor-management-lcms=false \
         -Dshell-ivi=false \
         -Dshell-kiosk=false \
-        -Ddemo-clients=false \
+        -Ddemo-clients=true \
         -Dsimple-clients=[] \
         -Dtools=[] \
         -Dresize-pool=false \
@@ -310,62 +222,56 @@ RUN if [ -z "$SYSTEMDISTRO_DEBUG_BUILD" ] ; then \
 
 ## Create the distro image with just what's needed at runtime
 
-FROM mcr.microsoft.com/azurelinux/base/core:3.0.20250729 AS runtime
+FROM archlinux:base AS runtime
 
 RUN echo "== Install Core/UI Runtime Dependencies ==" && \
-    tdnf    install -y \
+    pacman -S --noconfirm \
             cairo \
             chrony \
             dbus \
             dbus-glib \
+            dhcp-client \
             e2fsprogs \
-            freefont \
             libinput \
             libjpeg-turbo \
             libltdl \
             libpng \
-            librsvg2 \
+            librsvg \
             libsndfile \
-            libwayland-client \
-            libwayland-server \
-            libwayland-cursor \
+            wayland \
             libwebp \
-            libXcursor \
             libxkbcommon \
-            libXrandr \
+            libxcursor \
             iproute \
             nftables \
             pango \
+            pixman \
             procps-ng \
             rpm \
             sed \
             tzdata \
-            wayland-protocols-devel \
+            wayland-protocols \
             xcursor-themes \
-            xorg-x11-server-Xwayland \
-            xorg-x11-server-utils \
-            xorg-x11-xtrans-devel
+            xorg-xwayland \
+            xtrans
 
 # Install packages to aid in development, if not remove some packages. 
 ARG SYSTEMDISTRO_DEBUG_BUILD
-RUN if [ -z "$SYSTEMDISTRO_DEBUG_BUILD" ] ; then \
-        rpm -e --nodeps curl                     \
-        rpm -e --nodeps python3                  \
-        rpm -e --nodeps python3-libs;            \
-    else                                         \
-        echo "== Install development aid packages ==" && \
-        tdnf install -y                          \
-             gdb                                 \
-             azurelinux-repos-debug              \
-             nano                                \
-             vim                              && \
-        tdnf install -y                          \
-             wayland-debuginfo                   \
-             xorg-x11-server-Xwayland-debuginfo; \
-    fi
+
+#RUN if [ -z "$SYSTEMDISTRO_DEBUG_BUILD" ] ; then \
+#        pacman -Rdd curl                     \
+#        pacman -Rdd python3                  \
+#        pacman -Rdd python3-libs;            \
+#    else                                         \
+#        echo "== Install development aid packages ==" && \
+#        pacman -S --noconfirm                          \
+#             gdb                                 \
+#             nano                                \
+#             vim                                 \
+#    fi
 
 # Clear the tdnf cache to make the image smaller
-RUN tdnf clean all
+RUN pacman -Scc --noconfirm
 
 # Remove extra doc
 RUN rm -rf /usr/lib/python3.7 /usr/share/gtk-doc
