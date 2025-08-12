@@ -134,7 +134,7 @@ Users wanting to use different servers than the one provided by WSLg can change 
 guiApplications=false
 ```
 
-The system distro is based on the Microsoft [CBL-Mariner Linux](https://github.com/microsoft/CBL-Mariner). This is a minimal Linux environment, just enough to run the various pieces of WSLg. For details on how to build and deploy a private system distro please see our [build instructions](CONTRIBUTING.md).
+The system distro is based on the Archlinux [Archlinux Linux](https://hub.docker.com/_/archlinux). This is a latest stable version Linux environment, just enough to run the various pieces of WSLg. For details on how to build and deploy a private system distro please see our [build instructions](CONTRIBUTING.md).
 
 Every WSL 2 user distro is paired with its own instance of the system distro. The system distro runs partially isolated from the user distro to which it is paired, in its own NS/PID/UTS namespace but shares other namespaces such as IPC, to allow for shared memory optimization across the boundary. 
 
@@ -217,3 +217,4 @@ To report security issues with WSLg or any other Microsoft products, please foll
 
 # Trademarks
 This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft trademarks or logos is subject to and must follow Microsoft's Trademark & Brand Guidelines. Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship. Any use of third-party trademarks or logos are subject to those third-party's policies.
+
